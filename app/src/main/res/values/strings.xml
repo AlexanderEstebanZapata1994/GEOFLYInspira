@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">GEOFLYInspira</string>
+    <string name="cargar_fotos">Fotos Inspiradoras</string>
+    <string name="options_name">Opciones</string>
 </resources>

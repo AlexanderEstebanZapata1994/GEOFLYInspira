@@ -1,5 +1,18 @@
 <resources>
     <string name="app_name">GEOFLYInspira</string>
-    <string name="cargar_fotos">Fotos Inspiradoras</string>
-    <string name="options_name">Opciones</string>
+    <!-- Shared strings -->
+    <string name="s_load_info">Cargar información</string>
+    <string name="s_about">Acerca de...</string>
+    <string name="s_logout">Salir</string>
+    <string name="btn_load">Cargar</string>
+
+    <!-- Main Screen -->
+    <string name="s_btn_inspirePhotos">Fotos Inspiradoras</string>
+
+    <!-- LoadCsvActivity's strings -->
+    <string name="s_lbl_fligh_records">Registro de Vuelo</string>
+    <string name="s_lbl_pictures">Imágenes</string>
+    <string name="s_lbl_path">Ruta del archivo: </string>
+
+    <!-- ############## -->
 </resources>

@@ -44,7 +44,7 @@ public final class coordenadaContract {
 
         /**
          * fecha en la que fue creado el registro desde el Drone que viene del archivo datetime(utc)
-         * tipo: INTEGER
+         * tipo: TIMESTAMP
          */
         public final static String COL_COOR_DATETIME = "date";
 

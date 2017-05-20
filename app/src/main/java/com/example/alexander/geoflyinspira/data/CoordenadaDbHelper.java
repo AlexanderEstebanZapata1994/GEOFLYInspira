@@ -70,7 +70,6 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD + " REAL NOT NULL, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_LATITUD + " REAL NOT NULL, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_LONGITUD + " REAL NOT NULL, "
-                // TODO cambiar la fecha que no permita valores null
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME + " DATETIME , "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_ARCHIVO_IMG + " BLOB, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_EXTENSION + " TEXT, "

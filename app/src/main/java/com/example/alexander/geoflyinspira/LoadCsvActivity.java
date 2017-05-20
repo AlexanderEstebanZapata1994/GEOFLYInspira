@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.DateTimePatternGenerator;
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateFormat;
+import android.text.format.*;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -18,8 +19,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.*;
+import java.util.Date;
 
 /**
  * Created by Alexander Esteban on 5/15/2017.
@@ -52,54 +55,54 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void loadCsv (){
-        String latitude = "";
-        String longitude = "";
-        String altitude = "";
-        String datetime = "";
+        String isHeader = "";
+        String isPhoto = "";
+        String isVideo = "";
+        float latitude = 0;
+        float longitude = 0;
+        float altitude = 0;
+        Date timestamp = null;
 
-        // Declaramos las variables para almacenar las fecha
-        int year = 0;
-        int month = 0;
-        int day = 0;
-        int hour = 0;
-        int minute = 0;
-        int second = 0;
         BufferedReader br = null;
 
         // Creamos una instancia de la base de datos de tal forma que podamos escribir sobre ella.
         SQLiteDatabase db = coordenadaDbHelper.getWritableDatabase();
-        Calendar date = new GregorianCalendar();
-
+        // Formateamos la fecha
+        SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.ENGLISH);
+        Date date = null;
         try {
             InputStream inputStream = this.getResources().openRawResource(R.raw.records);
             br = new BufferedReader(new InputStreamReader(inputStream));
             String line = br.readLine();
             while (null != line) {
                 String[] fields = line.split(SEPARATOR);
-                System.out.println(Arrays.toString(fields));
-
-                fields = removeTrailingQuotes(fields);
-                System.out.println(Arrays.toString(fields));
-
-                // Almacenamos los valores de la fecha actual antes de guardarla
-                year = date.get(Calendar.YEAR);
-                month = date.get(Calendar.MONTH);
-                day = date.get(Calendar.DAY_OF_MONTH);
-                hour = date.get(Calendar.HOUR);
-                minute = date.get(Calendar.MINUTE);
-                second = date.get(Calendar.SECOND);
                 line = br.readLine();
                 // Creamos un nuevo mapa de valores donde las columnas son las llaves
                 ContentValues values = new ContentValues();
-                values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LATITUD, Float.parseFloat(fields[0].toString ())  ); //  Latitude
-                values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LONGITUD, Float.parseFloat(fields[1].toString()) ); // Longitude
-                values.put(coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD, Float.parseFloat(fields[2].toString ())  ); // Altitude
-                //TODO Falta guardar de  forma correcta la fecha realizando un casting de forma correcta
-                //values.put(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME, Float.parseFloat(fields[3].toString()) ); // Datetime
-                values.put(coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE, + day + "/" + (month+1) + "/" + year + " " + hour + ":" + minute + ":" + second); // CREATED DATE
-                // Insertando la información si la inserción nos devuelve un -1 quiere decir que hubo un error en la inserción
-                // De lo contrario guardará la información de forma correcta.
-                long newRowId = db.insert(coordenadaContract.COORDENADAEntry.TABLE_NAME, null, values);
+                // Validamos que si la primer fila tiene los encabezado entonces siga con la siguiente fila
+                isHeader = fields[0].toString();
+                latitude = Float.parseFloat(fields[0].toString());
+                longitude = Float.parseFloat(fields[0].toString());
+                altitude = Float.parseFloat(fields[0].toString());
+                isPhoto = fields[15].toString();
+                isVideo = fields[16].toString();
+
+                if (!isHeader.equals("latitude")){
+                    if ( (isPhoto.equals("1")) || (isVideo.equals("1")) ) {
+                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LATITUD, latitude );
+                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LONGITUD, longitude );
+                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD, altitude );
+                        // TODO pendiente por guardar fecha del archivo ERROR: Unparsable java.text.ParseException: Unparseable date
+                        //Date parsedDate = dateFormat.parse(fields[11].toString ());
+                        SimpleDateFormat print = new SimpleDateFormat("MM d, yyyy HH:mm:ss");
+                        //values.put(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME, print.format(parsedDate) ); // Datetime
+
+                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE, dateFormat.format(new Date())); // CREATED DATE
+                        // Insertamos los datos, si la inserción nos devuelve un -1 quiere decir que hubo un error en la inserción
+                        // De lo contrario guardará la información de forma correcta.
+                        long newRowId = db.insert(coordenadaContract.COORDENADAEntry.TABLE_NAME, null, values);
+                    }
+                }
             }
         }catch (Exception e){
             System.out.print(e.getMessage());
@@ -107,7 +110,6 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             try {
                 if (null != br){
                     br.close();
-                    displayDatabaseInfo();
                 }
             }catch (IOException e){
                 System.out.print(e.getMessage());
@@ -143,7 +145,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     // poder verificar que efectivamente fue creada y tenemos conexión con la bd
 
     private void displayDatabaseInfo(){
-        CoordenadaDbHelper coordenadaDbHelper = new CoordenadaDbHelper(this);
+        coordenadaDbHelper = new CoordenadaDbHelper(this);
 
         SQLiteDatabase database =coordenadaDbHelper.getReadableDatabase();
 
@@ -154,5 +156,16 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }finally {
             cursor.close();
         }
+    }
+    /*
+    Since getWritableDatabase() and getReadableDatabase() are expensive to call when the database is closed,
+    you should leave your database connection open for as long as you possibly need to access it.
+    Typically, it is optimal to close the database in the onDestroy() of the calling Activity.
+    https://developer.android.com/training/basics/data-storage/databases.html
+    */
+    @Override
+    protected void onDestroy(){
+        coordenadaDbHelper.close();
+        super.onDestroy();
     }
 }

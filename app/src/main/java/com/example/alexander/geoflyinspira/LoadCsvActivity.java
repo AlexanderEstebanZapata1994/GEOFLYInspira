@@ -11,8 +11,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedReader;
@@ -35,12 +38,15 @@ import org.w3c.dom.Text;
 public class LoadCsvActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final String SEPARATOR = ",";
-    public static final int FILE_SELECT_CODE = 0;
+    public static final int FILE_SELECTED_CODE = 0;
+    public static final int SELECTED_IMAGE = 1046;
     private CoordenadaDbHelper coordenadaDbHelper;
     private TextView txt_path_file;
     private Button btnLoad;
     private Button btnLoadImg;
+    private ListView listView;
     public Uri uri;
+    public Uri photoUri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,6 +61,15 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         // Establecemos los eventos para cada unos de los objetos instanciados previamente
         btnLoad.setOnClickListener(this);
         btnLoadImg.setOnClickListener(this);
+    }
+
+    // ActionBar  methods
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.options_load_csv, menu);
+        // Getting the action bar item
+        MenuItem menuItem = (MenuItem) findViewById(R.id.action_inspired_photos);
+        return true;
     }
     /**
      * Called when a view has been clicked.
@@ -151,7 +166,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/csv");      //csv only files
         try {
-            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo CSV para cargar"), 0);
+            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo CSV para cargar"), FILE_SELECTED_CODE);
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
@@ -162,13 +177,17 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void showImageChooser() {
+
         // Creamos un intento para abrir la aplicación
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         // Que permita el abrir el archivo
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("img/*");  //png, jpg, bitmap files
+        //intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*"); // png, jpg, bitmap files
+        // TODO Capturar varias imagenes
+        // https://guides.codepath.com/android/Accessing-the-Camera-and-Stored-Media
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         try {
-            startActivityForResult(Intent.createChooser(intent, "Seleccione una imagen para cargar"), 1);
+            startActivityForResult(Intent.createChooser(intent, "Seleccione las imágenes para cargar"), SELECTED_IMAGE);
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
@@ -180,7 +199,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         String path = "";
 
         switch (requestCode){
-            case 0:
+            case FILE_SELECTED_CODE:
                 // Si se selecciona un archivo
                 if(resultCode == Activity.RESULT_OK){
                     // ResultData obtenemos el archivo gargado validando que no sea null
@@ -196,16 +215,15 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     Toast.makeText(this, "No selecciono ningún archivo", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case 1:
+            case SELECTED_IMAGE:
                 // Si se selecciona un archivo
                 if(resultCode == Activity.RESULT_OK){
                     // ResultData obtenemos el archivo gargado validando que no sea null
                     if(resultData != null){
-                        this.uri = resultData.getData();
+                        this.photoUri = resultData.getData();
                         // Establecemos la ruta del archivo
-                        path = this.uri.toString();
-                        // TODO 2 Obtener el nombre del archivo para la ruta.
-
+                        path = this.photoUri.getLastPathSegment();
+                        path = path + "/"  ;
                         btnLoadImg.setText(R.string.btn_save);
                     }
                 }else {
@@ -245,5 +263,32 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     protected void onDestroy(){
         coordenadaDbHelper.close();
         super.onDestroy();
+    }
+
+    /****************************** Menu de opciones ACTION BAR ***************************************/
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_inspired_photos:
+                onCreateInspiredPhotosActivity();
+                return true;
+
+            case R.id.action_about:
+                // User chose the "Favorite" action, mark the current item
+                // as a favorite...
+                return true;
+
+            case R.id.action_logout:
+                System.exit(0);
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
+    }
+    private void onCreateInspiredPhotosActivity(){
+        // TODO Crear la interfaz para las fotos inspiradoras
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }

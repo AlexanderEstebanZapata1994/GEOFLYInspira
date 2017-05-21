@@ -29,9 +29,9 @@
             android:layout_height="wrap_content" />
         <Button
             android:id="@+id/btn_loadFile"
-            android:layout_width="100dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_load"
+            android:text="@string/btn_select_file"
             android:layout_gravity="right"
             android:textColor="@color/colorTextSecond"
             android:background="@color/colorMountain"
@@ -61,18 +61,20 @@
     </ListView>
 
     <Button
-        android:layout_width="100dp"
+        android:id="@+id/btn_loadImg"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/btn_load"
+        android:text="@string/btn_select_file"
         android:layout_gravity="right"
         android:textColor="@color/colorTextSecond"
         android:background="@color/colorMountain"
-        android:padding="10dp"/>
+        android:padding="10dp"
+        android:onClick="onClick"/>
     </LinearLayout>
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_gravity="center"
         android:layout_marginBottom="10dp"
         android:background="@drawable/geo_fly_icon" />

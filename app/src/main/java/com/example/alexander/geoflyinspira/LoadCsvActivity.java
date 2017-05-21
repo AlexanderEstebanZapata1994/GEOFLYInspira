@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.TimeZone;
+import android.media.ImageReader;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -36,16 +38,23 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     public static final int FILE_SELECT_CODE = 0;
     private CoordenadaDbHelper coordenadaDbHelper;
     private TextView txt_path_file;
+    private Button btnLoad;
+    private Button btnLoadImg;
+    public Uri uri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load_csv);
         coordenadaDbHelper = new CoordenadaDbHelper(this);
 
-        Button btnLoad = (Button) findViewById(R.id.btn_loadFile);
-        btnLoad.setOnClickListener(this);
-        // Instanciamos el txt donde mostraremos la ruta del archivo selecionado por el usuario
+        //Instanciamos los objetos que usaremos para interactuar entre la lógica y la GUI
+        btnLoad = (Button) findViewById(R.id.btn_loadFile);
+        btnLoadImg = (Button) findViewById(R.id.btn_loadImg);
         txt_path_file = (TextView) findViewById(R.id.lbl_path_file);
+
+        // Establecemos los eventos para cada unos de los objetos instanciados previamente
+        btnLoad.setOnClickListener(this);
+        btnLoadImg.setOnClickListener(this);
     }
     /**
      * Called when a view has been clicked.
@@ -54,7 +63,20 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
      */
     @Override
     public void onClick(View v) {
-        showFileChooser();
+        if (v.getId() == btnLoad.getId()){
+            if (btnLoad.getText() == getResources().getString(R.string.btn_select_file)){
+                showFileChooser();
+            }else if (btnLoad.getText() == getResources().getString(R.string.btn_save)){
+                loadCsv(this.uri);
+            }
+        }
+        if (v.getId() == btnLoadImg.getId()) {
+            if (btnLoadImg.getText() == getResources().getString(R.string.btn_select_file)) {
+                showImageChooser();
+            } else if (btnLoadImg.getText() == getResources().getString(R.string.btn_save)) {
+                loadImg(this.uri);
+            }
+        }
     }
 
     private void loadCsv (Uri uri){
@@ -68,21 +90,12 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         long newRowId = 0;
         BufferedReader br = null;
 
-        //Variables para el archivo cargado
-        String path = "";
-        String type = "";
-        String nameFile = "";
-
         // Formateamos la fecha para la fecha de inserción del registro
         SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.ENGLISH);
         // Creamos una instancia de la base de datos de tal forma que podamos escribir sobre ella.
         SQLiteDatabase db = coordenadaDbHelper.getWritableDatabase();
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
-            // Establecemos la ruta del archivo
-            path = uri.toString();
-            // TODO 2 Obtener el nombre del archivo para la ruta.
-            txt_path_file.setText(path);
             br = new BufferedReader(new InputStreamReader(inputStream));
             String line = br.readLine();
             int i = 0;
@@ -117,7 +130,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     }
                 }
             }
-            Toast.makeText(this, String.valueOf(i)+  " registros guardados.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, String.valueOf(i) +  " registros guardados exitosamente.", Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             System.out.print(e.getMessage());
         }finally {
@@ -138,23 +151,67 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("text/csv");      //csv only files
         try {
-            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo para cargar"), FILE_SELECT_CODE);
+            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo CSV para cargar"), 0);
         } catch (android.content.ActivityNotFoundException ex) {
-            // Potentially direct the user to the Market with a Dialog
+            Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadImg(Uri uri){
+
+    }
+
+    private void showImageChooser() {
+        // Creamos un intento para abrir la aplicación
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        // Que permita el abrir el archivo
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("img/*");  //png, jpg, bitmap files
+        try {
+            startActivityForResult(Intent.createChooser(intent, "Seleccione una imagen para cargar"), 1);
+        } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData){
-        Uri currentUri = null;
-        // Si la respuesta del usuario es CORRECTA
-        if(resultCode == Activity.RESULT_OK){
-            // ResultData obtenemos el archivo gargado validando que no sea null
-            if(resultData != null){
-                currentUri = resultData.getData();
-                loadCsv(currentUri);
-            }
+        //Variables para el archivo cargado
+        String path = "";
+
+        switch (requestCode){
+            case 0:
+                // Si se selecciona un archivo
+                if(resultCode == Activity.RESULT_OK){
+                    // ResultData obtenemos el archivo gargado validando que no sea null
+                    if(resultData != null){
+                        this.uri = resultData.getData();
+                        // Establecemos la ruta del archivo
+                        path = this.uri.toString();
+                        // TODO 2 Obtener el nombre del archivo para la ruta.
+                        txt_path_file.setText(path);
+                        btnLoad.setText(R.string.btn_save);
+                    }
+                }else{ // Si no selecciona nada
+                    Toast.makeText(this, "No selecciono ningún archivo", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            case 1:
+                // Si se selecciona un archivo
+                if(resultCode == Activity.RESULT_OK){
+                    // ResultData obtenemos el archivo gargado validando que no sea null
+                    if(resultData != null){
+                        this.uri = resultData.getData();
+                        // Establecemos la ruta del archivo
+                        path = this.uri.toString();
+                        // TODO 2 Obtener el nombre del archivo para la ruta.
+
+                        btnLoadImg.setText(R.string.btn_save);
+                    }
+                }else {
+                    Toast.makeText(this, "No selecciono ninguna imagen", Toast.LENGTH_SHORT).show();
+                }
+                break;
         }
     }
 
@@ -177,7 +234,8 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
         return convertedDate;
     }
-    /*
+
+    /**
     Since getWritableDatabase() and getReadableDatabase() are expensive to call when the database is closed,
     you should leave your database connection open for as long as you possibly need to access it.
     Typically, it is optimal to close the database in the onDestroy() of the calling Activity.

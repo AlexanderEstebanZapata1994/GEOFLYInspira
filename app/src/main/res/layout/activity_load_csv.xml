@@ -22,16 +22,16 @@
                 android:text="@string/s_lbl_path"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-            <TextView
-                android:id="@+id/lbl_path_file"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
         </LinearLayout>
+        <TextView
+            android:id="@+id/lbl_path_file"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
         <Button
             android:id="@+id/btn_loadFile"
-            android:layout_width="100dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/btn_load"
+            android:text="@string/btn_select_file"
             android:layout_gravity="right"
             android:textColor="@color/colorTextSecond"
             android:background="@color/colorMountain"
@@ -43,36 +43,40 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_margin="10dp"
-        android:layout_weight="1">
-    <TextView
-        android:text="@string/s_lbl_pictures"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:fontFamily="sans-serif"
-        android:textSize="20sp"/>
-    <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:layout_margin="10dp">
-    </ListView>
+        android:layout_weight="1"
+        android:orientation="vertical">
 
-    <Button
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:text="@string/btn_load"
-        android:layout_gravity="right"
-        android:textColor="@color/colorTextSecond"
-        android:background="@color/colorMountain"
-        android:padding="10dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:fontFamily="sans-serif"
+            android:text="@string/s_lbl_pictures"
+            android:textSize="20sp" />
+
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:layout_weight="2"></ListView>
+
+        <Button
+            android:id="@+id/btn_loadImg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="right"
+            android:background="@color/colorMountain"
+            android:onClick="onClick"
+            android:padding="10dp"
+            android:text="@string/btn_select_file"
+            android:textColor="@color/colorTextSecond" />
     </LinearLayout>
+
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
         android:layout_gravity="center"
         android:layout_marginBottom="10dp"
         android:background="@drawable/geo_fly_icon" />

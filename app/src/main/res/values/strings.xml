@@ -4,7 +4,8 @@
     <string name="s_load_info">Cargar información</string>
     <string name="s_about">Acerca de...</string>
     <string name="s_logout">Salir</string>
-    <string name="btn_load">Cargar</string>
+    <string name="btn_select_file">Seleccionar</string>
+    <string name="btn_save">Guardar</string>
 
     <!-- Main Screen -->
     <string name="s_btn_inspirePhotos">Fotos Inspiradoras</string>
@@ -15,8 +16,10 @@
     <string name="s_lbl_pictures">Imágenes</string>
     <string name="s_lbl_path">Ruta del archivo: </string>
 
+
     <!-- AboutActivity's strings -->
     <string name="s_titulo_about">Acerca de</string>
     <string name="s_scrollbar_text">GeoFlyInspira es una Fundación dedicada a inspirar y dar visibilidad a procesos y propuestas de valor e innovación mediante el uso de las Tecnologías de la Información y Comunicaciones – TIC; resaltando historias inspiradoras que impactan en acciones trascendentes en la humanidad, generando procesos de emprendimiento, unión y desarrollo del territorio en los diferentes contextos sociales, aportando en la potencialización de ciudadanos integrales que construyan mejores realidades pensando en el bien común.</string>
-    <!-- ############## -->
+
+
 </resources>

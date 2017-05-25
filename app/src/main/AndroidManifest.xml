@@ -9,7 +9,10 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher_round"
+
+
         android:roundIcon="@mipmap/ic_launcher_round"
+
         android:logo="@drawable/geo_fly_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -28,6 +31,18 @@
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity">
+
+            </meta-data>>
+        </activity>
+        <activity
+            android:name=".AboutActivity"
+            android:label="@string/s_titulo_about"
+            android:parentActivityName=".MainActivity">
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity">
+
             </meta-data>>
         </activity>
     </application>

@@ -1,9 +1,12 @@
 package com.example.alexander.geoflyinspira;
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.icu.text.SimpleDateFormat;
 import android.icu.util.TimeZone;
 import android.media.ImageReader;
@@ -14,10 +17,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -38,15 +44,19 @@ import org.w3c.dom.Text;
 public class LoadCsvActivity extends AppCompatActivity implements View.OnClickListener {
 
     public static final String SEPARATOR = ",";
-    public static final int FILE_SELECTED_CODE = 0;
+    public static final int FILE_SELECTED_CODE = 1005;
     public static final int SELECTED_IMAGE = 1046;
     private CoordenadaDbHelper coordenadaDbHelper;
     private TextView txt_path_file;
     private Button btnLoad;
     private Button btnLoadImg;
-    private ListView listView;
+    private ListView lv_imgToLoad;
     public Uri uri;
     public Uri photoUri;
+    // Listas de objetos para ser guardados luego
+    public ArrayList<Bitmap> bitmapsList = new ArrayList<Bitmap>();
+    public ArrayList<String> pathList= new ArrayList<String>();
+    public ArrayList<String> photosNamesList= new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,6 +67,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         btnLoad = (Button) findViewById(R.id.btn_loadFile);
         btnLoadImg = (Button) findViewById(R.id.btn_loadImg);
         txt_path_file = (TextView) findViewById(R.id.lbl_path_file);
+        lv_imgToLoad = (ListView) findViewById(R.id.lv_imgToLoad);
 
         // Establecemos los eventos para cada unos de los objetos instanciados previamente
         btnLoad.setOnClickListener(this);
@@ -106,7 +117,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         BufferedReader br = null;
 
         // Formateamos la fecha para la fecha de inserción del registro
-        SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.ENGLISH);
+        //SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.ENGLISH);
         // Creamos una instancia de la base de datos de tal forma que podamos escribir sobre ella.
         SQLiteDatabase db = coordenadaDbHelper.getWritableDatabase();
         try {
@@ -135,8 +146,8 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD, altitude );
                         // TODO  1 pendiente por guardar fecha del archivo ERROR: Unparsable java.text.ParseException: Unparseable date
                         timestamp  = getCastingStrToDate(fields[11].toString (), "dd-MM-yyyy");
-                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME, dateFormat.format(timestamp)); // Datetime
-                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE, dateFormat.format(new Date()));
+                        //values.put(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME, dateFormat.format(timestamp)); // Datetime
+                        //values.put(coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE, dateFormat.format(new Date()));
 
                         // Insertamos los datos, si la inserción nos devuelve un -1 quiere decir que hubo un error en la inserción
                         // De lo contrario guardará la información de forma correcta.
@@ -177,17 +188,13 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void showImageChooser() {
-
         // Creamos un intento para abrir la aplicación
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        // Que permita el abrir el archivo
-        //intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("image/*"); // png, jpg, bitmap files
-        // TODO Capturar varias imagenes
-        // https://guides.codepath.com/android/Accessing-the-Camera-and-Stored-Media
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*"); // png, jpg, jpeg, bitmap files
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         try {
-            startActivityForResult(Intent.createChooser(intent, "Seleccione las imágenes para cargar"), SELECTED_IMAGE);
+            startActivityForResult(Intent.createChooser(intent, "Select Multiple photos"), SELECTED_IMAGE);
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
@@ -199,7 +206,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         String path = "";
 
         switch (requestCode){
-            case FILE_SELECTED_CODE:
+            case FILE_SELECTED_CODE: // Cuando carga el archivo CSV
                 // Si se selecciona un archivo
                 if(resultCode == Activity.RESULT_OK){
                     // ResultData obtenemos el archivo gargado validando que no sea null
@@ -215,16 +222,94 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     Toast.makeText(this, "No selecciono ningún archivo", Toast.LENGTH_SHORT).show();
                 }
                 break;
-            case SELECTED_IMAGE:
+            case SELECTED_IMAGE:  // Cuando selecciona imagenes
                 // Si se selecciona un archivo
-                if(resultCode == Activity.RESULT_OK){
+                if(resultCode == Activity.RESULT_OK && resultData != null){
                     // ResultData obtenemos el archivo gargado validando que no sea null
-                    if(resultData != null){
-                        this.photoUri = resultData.getData();
-                        // Establecemos la ruta del archivo
-                        path = this.photoUri.getLastPathSegment();
-                        path = path + "/"  ;
+                    try {
+                        ClipData clipData = null;
+                        int imageSelectedCount = 0;
+                        if( resultData.getClipData() != null){
+                            clipData = resultData.getClipData();
+                            imageSelectedCount =  clipData.getItemCount();
+                        }
+                        // Onteniendo la imagen del parametro data
+                        ClipData.Item item = null;
+
+                        if (imageSelectedCount > 1){
+                            for (int i = 0; i < imageSelectedCount; i++){
+                                item = clipData.getItemAt(i);
+                                photoUri = item.getUri();
+                                InputStream inputStream;
+                                inputStream = getContentResolver().openInputStream(photoUri);
+                                BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+                                Bitmap bitmap = BitmapFactory.decodeStream(bufferedInputStream);
+                                bitmapsList.add(i, bitmap); // Añadimos el bitmap a la lista para luego guardarla
+
+                                // Obteniendo la ruta del archivo
+                                String[] projection = {MediaStore.Images.Media.DATA};
+                                Cursor cursor = getContentResolver().query(photoUri, projection, null, null, null);
+                                cursor.moveToFirst();
+                                int columnIndex = cursor.getColumnIndex(projection[0]);
+                                String picturePath = cursor.getString(columnIndex);
+                                pathList.add(i, picturePath);
+                                //Con la variable picturePath podemos guardar la ruta donde quedará en la bd
+                                cursor.close();
+
+                                // Obteniendo el nombre del archivo
+                                int lengthPath = picturePath.length(); //Obtenemos la cantidad de letras de la ruta
+                                char separator = '/';// Establcemos el divisor de la ruta
+                                int positions = 0;// Guardamos la cantidad de segmentos que tenemos de la ruta es decir cuando encuentra un separador quiere decir que llevamos un segmento.
+                                //Recorremos la ruta buscando los separadores para aunmentar la cantidad de segmentos
+                                for (int j = 0; j < lengthPath; j++){
+                                    char currentCharacter = picturePath.charAt(j);//
+                                    if (currentCharacter == separator){
+                                        positions++;
+                                    }
+                                }
+                                String[] segments = picturePath.split("/");
+                                String lastSegment = segments[positions]; // Obtenemos el nombre del archivo
+                                photosNamesList.add(i, lastSegment);
+                            }
+                        }else { // Si solo selecciono 1 imagen hace esto
+                            photoUri = resultData.getData();
+                            InputStream inputStream;
+                            inputStream = getContentResolver().openInputStream(photoUri);
+                            BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+                            Bitmap bitmap = BitmapFactory.decodeStream(bufferedInputStream);
+                            bitmapsList.add(0, bitmap); // Añadimos el bitmap a la lista para luego guardarla
+
+                            // Obteniendo la ruta del archivo
+                            String[] projection = {MediaStore.Images.Media.DATA};
+                            Cursor cursor = getContentResolver().query(photoUri, projection, null, null, null);
+                            cursor.moveToFirst();
+                            int columnIndex = cursor.getColumnIndex(projection[0]);
+                            String picturePath = cursor.getString(columnIndex);
+                            pathList.add(0, picturePath);
+                            //Con la variable picturePath podemos guardar la ruta donde quedará en la bd
+                            cursor.close();
+
+                            // Obteniendo el nombre del archivo
+                            int lengthPath = picturePath.length(); //Obtenemos la cantidad de letras de la ruta
+                            char separator = '/';// Establcemos el divisor de la ruta
+                            int positions = 0;// Guardamos la cantidad de segmentos que tenemos de la ruta es decir cuando encuentra un separador quiere decir que llevamos un segmento.
+                            //Recorremos la ruta buscando los separadores para aunmentar la cantidad de segmentos
+                            for (int j = 0; j < lengthPath; j++){
+                                char currentCharacter = picturePath.charAt(j);//
+                                if (currentCharacter == separator){
+                                    positions++;
+                                }
+                            }
+                            String[] segments = picturePath.split("/");
+                            String lastSegment = segments[positions]; // Obtenemos el nombre del archivo
+                            photosNamesList.add(0, lastSegment);
+                        }
+
+                        //ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, imagesEncodedList);
+                        //lv_imgToLoad.setAdapter(adapter);
                         btnLoadImg.setText(R.string.btn_save);
+                    }catch (Exception e){
+                        e.getMessage();
                     }
                 }else {
                     Toast.makeText(this, "No selecciono ninguna imagen", Toast.LENGTH_SHORT).show();
@@ -241,15 +326,6 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
      * */
     protected Date getCastingStrToDate(String date, String format){
         Date convertedDate = new Date();
-        SimpleDateFormat inputFormat = new SimpleDateFormat(format, Locale.ENGLISH);
-        inputFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        SimpleDateFormat outputFormat = new SimpleDateFormat(format, Locale.ENGLISH);
-
-        try {
-            convertedDate = inputFormat.parse(date);
-        }catch (Exception e){
-            e.getStackTrace();
-        }
         return convertedDate;
     }
 
@@ -279,15 +355,20 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                 return true;
 
             case R.id.action_logout:
-                System.exit(0);
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                try {
+                    startActivityForResult(intent, SELECTED_IMAGE);
+                } catch (android.content.ActivityNotFoundException ex) {    }
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
                 return super.onOptionsItemSelected(item);
         }
     }
+
     private void onCreateInspiredPhotosActivity(){
-        // TODO Crear la interfaz para las fotos inspiradoras
+        finish();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }

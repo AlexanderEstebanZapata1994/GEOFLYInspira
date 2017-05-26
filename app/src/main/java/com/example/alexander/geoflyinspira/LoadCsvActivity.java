@@ -350,8 +350,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                 return true;
 
             case R.id.action_about:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
+                onCreateAboutActivity();
                 return true;
 
             case R.id.action_logout:
@@ -370,6 +369,11 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     private void onCreateInspiredPhotosActivity(){
         finish();
         Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    private void onCreateAboutActivity(){
+        Intent intent = new Intent(this, AboutActivity.class);
         startActivity(intent);
     }
 }

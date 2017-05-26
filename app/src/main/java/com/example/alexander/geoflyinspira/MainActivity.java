@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.options_main, menu);
+
         // Getting the action bar item
         MenuItem menuItem = (MenuItem) findViewById(R.id.action_load_info);
         return true;

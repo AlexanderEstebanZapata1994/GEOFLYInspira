@@ -17,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.options_main, menu);
+
         // Getting the action bar item
         MenuItem menuItem = (MenuItem) findViewById(R.id.action_load_info);
         return true;
@@ -30,8 +31,7 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.action_about:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
+               onCreateAboutActivity();
                 return true;
 
             case R.id.action_logout:
@@ -48,6 +48,11 @@ public class MainActivity extends AppCompatActivity {
     }
     private void onCreateLoadCsvActivity(){
         Intent intent = new Intent(this, LoadCsvActivity.class);
+        startActivity(intent);
+    }
+
+    private void onCreateAboutActivity(){
+        Intent intent = new Intent(this, AboutActivity.class);
         startActivity(intent);
     }
 }

@@ -34,7 +34,11 @@ public class MainActivity extends AppCompatActivity {
                 return true;
 
             case R.id.action_logout:
-                finish();
+                Intent intent = new Intent(Intent.ACTION_MAIN);
+                intent.addCategory(Intent.CATEGORY_HOME);
+                try {
+                    startActivityForResult(intent, 1);
+                } catch (android.content.ActivityNotFoundException ex) {    }
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.

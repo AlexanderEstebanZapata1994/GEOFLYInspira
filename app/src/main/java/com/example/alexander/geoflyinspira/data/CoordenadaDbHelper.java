@@ -75,7 +75,7 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_EXTENSION + " TEXT, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_NOMBRE_ARCHIVO + " TEXT, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_DESC + " TEXT, "
-                +  coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE + " DATETIME NOT NULL);";
+                +  coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE + " DATETIME);";
         return sql;
     }
 }

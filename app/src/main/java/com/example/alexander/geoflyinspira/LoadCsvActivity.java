@@ -1,18 +1,17 @@
 package com.example.alexander.geoflyinspira;
+import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.icu.text.SimpleDateFormat;
-import android.icu.util.TimeZone;
-import android.media.ImageReader;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +21,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -35,7 +33,6 @@ import java.util.Date;
 import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
 import com.example.alexander.geoflyinspira.data.coordenadaContract;
 
-import org.w3c.dom.Text;
 
 /**
  * Created by Alexander Esteban on 5/15/2017.
@@ -46,6 +43,8 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     public static final String SEPARATOR = ",";
     public static final int FILE_SELECTED_CODE = 1005;
     public static final int SELECTED_IMAGE = 1046;
+    private final int REQUEST_CODE_ASK_PERMISSIONS = 123;
+
     private CoordenadaDbHelper coordenadaDbHelper;
     private TextView txt_path_file;
     private Button btnLoad;
@@ -57,6 +56,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     public ArrayList<Bitmap> bitmapsList = new ArrayList<Bitmap>();
     public ArrayList<String> pathList= new ArrayList<String>();
     public ArrayList<String> photosNamesList= new ArrayList<String>();
+    public ArrayList<String> photosExtList= new ArrayList<String>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -89,6 +89,9 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
      */
     @Override
     public void onClick(View v) {
+        verifyUserPermissions(v);
+    }
+    private void afterGrantPermissions(View v){
         if (v.getId() == btnLoad.getId()){
             if (btnLoad.getText() == getResources().getString(R.string.btn_select_file)){
                 showFileChooser();
@@ -100,7 +103,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             if (btnLoadImg.getText() == getResources().getString(R.string.btn_select_file)) {
                 showImageChooser();
             } else if (btnLoadImg.getText() == getResources().getString(R.string.btn_save)) {
-                loadImg(this.uri);
+                loadImg(this.bitmapsList, this.photosNamesList, this.photosExtList);
             }
         }
     }
@@ -183,22 +186,59 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void loadImg(Uri uri){
+    private void loadImg(ArrayList<Bitmap> bitmap, ArrayList<String> photoNames, ArrayList<String> photosExtensions  ){
+        try {
+            SQLiteDatabase dbHelper = coordenadaDbHelper.getReadableDatabase();
 
+            // Define a projection that specifies which columns from the database
+            // you will actually use after this query.
+            String[] projection = {
+                    coordenadaContract.COORDENADAEntry._ID
+            };
+
+            // Filter results WHERE "title" = 'My Title'
+            String selection = coordenadaContract.COORDENADAEntry.ID + " = ?";
+            String[] selectionArgs = { "" };
+
+            // How you want the results sorted in the resulting Cursor
+            String sortOrder =
+                    coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME + " ASC";
+
+            Cursor cursor = dbHelper.query(
+                    coordenadaContract.COORDENADAEntry.TABLE_NAME,                     // The table to query
+                    projection,                               // The columns to return
+                    null,                                // The columns for the WHERE clause
+                    null,                                     // The values for the WHERE clause
+                    null,                                     // don't group the rows
+                    null,                                     // don't filter by row groups
+                    null                                 // The sort order
+            );
+
+            List itemIds = new ArrayList<>();
+            while(cursor.moveToNext()) {
+                long itemId = cursor.getLong(
+                        cursor.getColumnIndexOrThrow(coordenadaContract.COORDENADAEntry._ID));
+                itemIds.add(itemId);
+            }
+            cursor.close();
+        }catch (Exception e){
+            e.getMessage();
+        }
     }
 
     private void showImageChooser() {
         // Creamos un intento para abrir la aplicación
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("image/*"); // png, jpg, jpeg, bitmap files
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         try {
-            startActivityForResult(Intent.createChooser(intent, "Select Multiple photos"), SELECTED_IMAGE);
+            startActivityForResult(Intent.createChooser(intent, "Seleccione la imágen a Cargar"), SELECTED_IMAGE);
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData){
@@ -212,9 +252,12 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     // ResultData obtenemos el archivo gargado validando que no sea null
                     if(resultData != null){
                         this.uri = resultData.getData();
-                        // Establecemos la ruta del archivo
-                        path = this.uri.toString();
-                        // TODO 2 Obtener el nombre del archivo para la ruta.
+                        if (this.uri != null){
+                            path = this.uri.toString();
+                            if (path.toLowerCase().startsWith("file://")){
+                                path = (new File(URI.create(path))).getAbsolutePath();
+                            }
+                        }
                         txt_path_file.setText(path);
                         btnLoad.setText(R.string.btn_save);
                     }
@@ -247,14 +290,10 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                                 bitmapsList.add(i, bitmap); // Añadimos el bitmap a la lista para luego guardarla
 
                                 // Obteniendo la ruta del archivo
-                                String[] projection = {MediaStore.Images.Media.DATA};
-                                Cursor cursor = getContentResolver().query(photoUri, projection, null, null, null);
-                                cursor.moveToFirst();
-                                int columnIndex = cursor.getColumnIndex(projection[0]);
-                                String picturePath = cursor.getString(columnIndex);
+                                String picturePath = photoUri.getPath();
                                 pathList.add(i, picturePath);
                                 //Con la variable picturePath podemos guardar la ruta donde quedará en la bd
-                                cursor.close();
+                                //cursor.close();
 
                                 // Obteniendo el nombre del archivo
                                 int lengthPath = picturePath.length(); //Obtenemos la cantidad de letras de la ruta
@@ -270,24 +309,41 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                                 String[] segments = picturePath.split("/");
                                 String lastSegment = segments[positions]; // Obtenemos el nombre del archivo
                                 photosNamesList.add(i, lastSegment);
+
+                                // Obteniendo la extensión del archivo seleccionado
+                                String ext = "";
+                                char currentChar;
+                                for (int j = 0; j < lastSegment.length(); j++){
+                                    currentChar = lastSegment.charAt(j);
+                                    if (currentChar != '.' ){
+                                        continue;
+                                    }else {
+                                        // Guardamos despues del punto el resto de la extensión
+                                        ext = ext.concat(lastSegment.substring(j));
+                                        photosExtList.add(i, ext);
+                                        break;
+                                    }
+                                }
                             }
                         }else { // Si solo selecciono 1 imagen hace esto
-                            photoUri = resultData.getData();
+                            // Limpiamos las variables para cuando se añade de uno en uno
+                            bitmapsList = new ArrayList<Bitmap>(0);
+                            pathList= new ArrayList<String>(0);
+                            photosNamesList= new ArrayList<String>(0);
+                            photosExtList= new ArrayList<String>(0);
+
+                            this.photoUri = resultData.getData();
                             InputStream inputStream;
-                            inputStream = getContentResolver().openInputStream(photoUri);
+                            inputStream = getContentResolver().openInputStream(this.photoUri);
                             BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
                             Bitmap bitmap = BitmapFactory.decodeStream(bufferedInputStream);
                             bitmapsList.add(0, bitmap); // Añadimos el bitmap a la lista para luego guardarla
 
                             // Obteniendo la ruta del archivo
-                            String[] projection = {MediaStore.Images.Media.DATA};
-                            Cursor cursor = getContentResolver().query(photoUri, projection, null, null, null);
-                            cursor.moveToFirst();
-                            int columnIndex = cursor.getColumnIndex(projection[0]);
-                            String picturePath = cursor.getString(columnIndex);
+                            String picturePath = photoUri.getPath();
                             pathList.add(0, picturePath);
                             //Con la variable picturePath podemos guardar la ruta donde quedará en la bd
-                            cursor.close();
+                            //cursor.close();
 
                             // Obteniendo el nombre del archivo
                             int lengthPath = picturePath.length(); //Obtenemos la cantidad de letras de la ruta
@@ -303,13 +359,29 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                             String[] segments = picturePath.split("/");
                             String lastSegment = segments[positions]; // Obtenemos el nombre del archivo
                             photosNamesList.add(0, lastSegment);
+
+                            // Obteniendo la extensión del archivo seleccionado
+                            String ext = "";
+                            char currentChar;
+                            for (int j = 0; j < lastSegment.length(); j++){
+                                currentChar = lastSegment.charAt(j);
+                                if (currentChar != '.' ){
+                                    continue;
+                                }else {
+                                    // Guardamos despues del punto el resto de la extensión
+                                    ext = ext + lastSegment.substring(j);
+                                    break;
+                                }
+                            }
+                            this.photosExtList.add(0, ext);
                         }
 
-                        //ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, imagesEncodedList);
-                        //lv_imgToLoad.setAdapter(adapter);
+                        ArrayAdapter adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, photosNamesList);
+                        lv_imgToLoad.setAdapter(adapter);
                         btnLoadImg.setText(R.string.btn_save);
                     }catch (Exception e){
                         e.getMessage();
+                        Toast.makeText(this, "Error al cargar la información seleccionada", Toast.LENGTH_LONG).show();
                     }
                 }else {
                     Toast.makeText(this, "No selecciono ninguna imagen", Toast.LENGTH_SHORT).show();
@@ -367,9 +439,37 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+
     private void onCreateInspiredPhotosActivity(){
-        finish();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
+    }
+
+    //Android's Runtime Permissions GRANTED BY THE USER
+    private void verifyUserPermissions(View v) {
+        int canReadStoragePermission = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (canReadStoragePermission != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
+                    REQUEST_CODE_ASK_PERMISSIONS);
+            return;
+        }
+        afterGrantPermissions(v);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_ASK_PERMISSIONS:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // Permission Granted
+                    showImageChooser();
+                } else {
+                    // Permission Denied
+                    Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show();
+                }
+                break;
+            default:
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        }
     }
 }

@@ -6,10 +6,12 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+// TODO Revisar guardar la información con hilos y tareas sincronizadas
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -155,17 +157,28 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                         // Insertamos los datos, si la inserción nos devuelve un -1 quiere decir que hubo un error en la inserción
                         // De lo contrario guardará la información de forma correcta.
                         newRowId = db.insert(coordenadaContract.COORDENADAEntry.TABLE_NAME, null, values);
+                        if (newRowId == -1){ // Si hay un error en la inserción de algun dato guardaremos el registro para
+                            Toast.makeText(this, "Error al guardar los registros.", Toast.LENGTH_SHORT).show();
+                        }
                         i++;
                     }
                 }
             }
             Toast.makeText(this, String.valueOf(i) +  " registros guardados exitosamente.", Toast.LENGTH_SHORT).show();
-        }catch (Exception e){
+        }catch (SQLException e){
             System.out.print(e.getMessage());
+            Toast.makeText(this, "Error al momento de guardar los registros.", Toast.LENGTH_SHORT).show();
+        }
+        catch (Exception e){
+            System.out.print(e.getMessage());
+            Toast.makeText(this, "Hubo un error al conectar con la base de datos.", Toast.LENGTH_SHORT).show();
         }finally {
             try {
                 if (null != br){
-                    br.close();
+                    br.close(); // Cerramos el buffer reader
+                }
+                if (null != db){
+                    db.close();// Cerramos la conexión con la bd
                 }
             }catch (IOException e){
                 System.out.print(e.getMessage());
@@ -238,7 +251,6 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
     }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent resultData){

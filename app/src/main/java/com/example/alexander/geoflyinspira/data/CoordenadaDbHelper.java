@@ -85,19 +85,20 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 .query(
                         coordenadaContract.COORDENADAEntry.TABLE_NAME,
                         null,
-                        null,
+                        //TODO 1: pendiente por validar error con otros registro
+                        coordenadaContract.COORDENADAEntry.ID + " IN (1,2,3,4,5)",
                         null,
                         null,
                         null,
                         null);
     }
 
-    public Cursor getPhotoById(String lawyerId) {
+    public Cursor getRecordById(String[] recordID) {
         Cursor c = getReadableDatabase().query(
                 coordenadaContract.COORDENADAEntry.TABLE_NAME,
                 null,
-                coordenadaContract.COORDENADAEntry.ID + " LIKE ?",
-                new String[]{lawyerId},
+                coordenadaContract.COORDENADAEntry.ID + " IN (?,?,?,?)",
+                recordID,
                 null,
                 null,
                 null);

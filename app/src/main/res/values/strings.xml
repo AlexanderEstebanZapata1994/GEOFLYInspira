@@ -20,6 +20,7 @@
     <string name="s_titulo_about">Acerca de</string>
     <string name="s_scrollbar_text">GeoFlyInspira es una Fundación dedicada a inspirar y dar visibilidad a procesos y propuestas de valor e innovación mediante el uso de las Tecnologías de la Información y Comunicaciones – TIC; resaltando historias inspiradoras que impactan en acciones trascendentes en la humanidad, generando procesos de emprendimiento, unión y desarrollo del territorio en los diferentes contextos sociales, aportando en la potencialización de ciudadanos integrales que construyan mejores realidades pensando en el bien común.</string>
 
-
+    <!-- PhotoListActivity's strings -->
+    <string name="title_activity_photo_list">Seleccione una imágen</string>
 
 </resources>

@@ -1,6 +1,7 @@
 package com.example.alexander.geoflyinspira.data;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -77,5 +78,29 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_DESC + " TEXT, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE + " DATETIME);";
         return sql;
+    }
+
+    public Cursor getAllRecords() {
+        return getReadableDatabase()
+                .query(
+                        coordenadaContract.COORDENADAEntry.TABLE_NAME,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null);
+    }
+
+    public Cursor getPhotoById(String lawyerId) {
+        Cursor c = getReadableDatabase().query(
+                coordenadaContract.COORDENADAEntry.TABLE_NAME,
+                null,
+                coordenadaContract.COORDENADAEntry.ID + " LIKE ?",
+                new String[]{lawyerId},
+                null,
+                null,
+                null);
+        return c;
     }
 }

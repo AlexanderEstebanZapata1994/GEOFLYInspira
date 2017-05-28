@@ -5,8 +5,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,6 +21,16 @@ public class MainActivity extends AppCompatActivity {
         // Getting the action bar item
         MenuItem menuItem = (MenuItem) findViewById(R.id.action_load_info);
         return true;
+    }
+
+    /**
+     * Called when a view has been clicked.
+     *
+     * @param v The view that was clicked.
+     */
+    @Override
+    public void onClick(View v) {
+        onCreateInspiredPhotosActivity();
     }
 
     @Override
@@ -46,8 +57,16 @@ public class MainActivity extends AppCompatActivity {
                 return super.onOptionsItemSelected(item);
         }
     }
+
     private void onCreateLoadCsvActivity(){
         Intent intent = new Intent(this, LoadCsvActivity.class);
         startActivity(intent);
     }
+
+    private void onCreateInspiredPhotosActivity(){
+        Intent intent = new Intent(this, PhotoListActivity.class);
+        startActivity(intent);
+    }
+
+
 }

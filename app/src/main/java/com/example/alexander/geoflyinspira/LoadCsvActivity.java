@@ -1,4 +1,5 @@
 package com.example.alexander.geoflyinspira;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,13 +54,14 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     private Button btnLoad;
     private Button btnLoadImg;
     private ListView lv_imgToLoad;
-    public Uri uri;
-    public Uri photoUri;
+    private Uri uri;
+    private Uri photoUri;
     // Listas de objetos para ser guardados luego
-    public ArrayList<Bitmap> bitmapsList = new ArrayList<Bitmap>();
-    public ArrayList<String> pathList= new ArrayList<String>();
-    public ArrayList<String> photosNamesList= new ArrayList<String>();
-    public ArrayList<String> photosExtList= new ArrayList<String>();
+    private ArrayList<Bitmap> bitmapsList = new ArrayList<Bitmap>();
+    private ArrayList<String> pathList= new ArrayList<String>();
+    private ArrayList<String> photosNamesList= new ArrayList<String>();
+    private ArrayList<String> photosExtList= new ArrayList<String>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -199,41 +202,84 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void loadImg(ArrayList<Bitmap> bitmap, ArrayList<String> photoNames, ArrayList<String> photosExtensions  ){
+    private void loadImg(ArrayList<Bitmap> bitmapList, ArrayList<String> photoNames, ArrayList<String> photosExtensions  ){
+        List idsForUpdating = new ArrayList();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+
         try {
             SQLiteDatabase dbHelper = coordenadaDbHelper.getReadableDatabase();
 
             // Define a projection that specifies which columns from the database
             // you will actually use after this query.
             String[] projection = {
-                    coordenadaContract.COORDENADAEntry._ID
+                    // Obtenemos el id del primer registro que se cargo y aun no tiene archivo
+                    coordenadaContract.COORDENADAEntry._ID,
             };
-
-            // Filter results WHERE "title" = 'My Title'
-            String selection = coordenadaContract.COORDENADAEntry.ID + " = ?";
+            // Filter results WHERE "archivo" = 'is null'
+            String selection = coordenadaContract.COORDENADAEntry.COL_COOR_ARCHIVO_IMG  + " IS NULL ";
             String[] selectionArgs = { "" };
 
-            // How you want the results sorted in the resulting Cursor
-            String sortOrder =
-                    coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME + " ASC";
-
             Cursor cursor = dbHelper.query(
-                    coordenadaContract.COORDENADAEntry.TABLE_NAME,                     // The table to query
-                    projection,                               // The columns to return
-                    null,                                // The columns for the WHERE clause
-                    null,                                     // The values for the WHERE clause
-                    null,                                     // don't group the rows
-                    null,                                     // don't filter by row groups
-                    null                                 // The sort order
+                    coordenadaContract.COORDENADAEntry.TABLE_NAME,      // The table to query
+                    projection,                                         // The columns to return
+                    selection,                                          // The columns for the WHERE clause
+                    null,                                               // The values for the WHERE clause
+                    null,                                               // don't group the rows
+                    null,                                               // don't filter by row groups
+                    null                                                // The sort order
             );
 
-            List itemIds = new ArrayList<>();
+            idsForUpdating = new ArrayList<>();
             while(cursor.moveToNext()) {
                 long itemId = cursor.getLong(
                         cursor.getColumnIndexOrThrow(coordenadaContract.COORDENADAEntry._ID));
-                itemIds.add(itemId);
+                idsForUpdating.add(itemId);
             }
             cursor.close();
+        }catch (Exception e){
+            e.getMessage();
+        }
+
+        try {
+            String fileName = "";
+            String fileExt = "";
+            Bitmap v_bitmap = null;
+            byte[] blobBytes = new byte[0];
+            String id = "";
+            if (idsForUpdating.size() > 0){
+                for (int i = 0; i < idsForUpdating.size(); i++ ){
+                    // Obtenemos los valores de la lista
+                    fileName = photoNames.get(i).toString();
+                    fileExt = photosExtensions.get(i).toString();
+                    v_bitmap = bitmapList.get(i); //Obtenemos el bitmap de acuerdo a la iteración actual
+                    v_bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    blobBytes = stream.toByteArray(); // Convertimos la imagen en un arreglo de bytes
+                    id = idsForUpdating.get(i).toString(); // Guardamos el id el cual vamos a actualizar
+
+                    // Ahora actualizamos los valores con base a los ids obtenidos previamente
+                    SQLiteDatabase db = coordenadaDbHelper.getReadableDatabase();
+
+                    // New value for one column
+                    ContentValues values = new ContentValues();
+                    values.put(coordenadaContract.COORDENADAEntry.COL_COOR_ARCHIVO_IMG, blobBytes);
+                    values.put(coordenadaContract.COORDENADAEntry.COL_COOR_NOMBRE_ARCHIVO, fileName);
+                    values.put(coordenadaContract.COORDENADAEntry.COL_COOR_EXTENSION, fileExt);
+                    // Which row to update, based on the id
+                    String selection = coordenadaContract.COORDENADAEntry.ID + " = ?";
+                    String[] selectionArgs = { id };
+
+                    int count = db.update(
+                            coordenadaContract.COORDENADAEntry.TABLE_NAME,
+                            values,
+                            selection,
+                            selectionArgs);
+                }
+                Toast.makeText(this, "Las imágenes han sido guardadas correctamente.", Toast.LENGTH_SHORT).show();
+            }
+            Toast.makeText(this, "No hay información nueva por actualizar.", Toast.LENGTH_SHORT).show();
+        }catch (SQLException sql){
+            sql.getMessage();
+            Toast.makeText(this, "Ha ocurrido un error al guardar la información.", Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             e.getMessage();
         }
@@ -453,7 +499,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
 
 
     private void onCreateInspiredPhotosActivity(){
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, PhotoListActivity.class);
         startActivity(intent);
     }
 

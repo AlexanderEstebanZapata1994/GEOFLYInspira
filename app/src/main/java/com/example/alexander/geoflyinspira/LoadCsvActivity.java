@@ -252,7 +252,8 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     fileName = photoNames.get(i).toString();
                     fileExt = photosExtensions.get(i).toString();
                     v_bitmap = bitmapList.get(i); //Obtenemos el bitmap de acuerdo a la iteración actual
-                    v_bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    //TODO Verificar porque esta guardando la misma imagen
+                    v_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
                     blobBytes = stream.toByteArray(); // Convertimos la imagen en un arreglo de bytes
                     id = idsForUpdating.get(i).toString(); // Guardamos el id el cual vamos a actualizar
 

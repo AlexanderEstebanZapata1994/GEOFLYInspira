@@ -70,8 +70,7 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 .query(
                         coordenadaContract.COORDENADAEntry.TABLE_NAME,
                         null,
-                        //TODO 1: pendiente por validar error con otros registro
-                        coordenadaContract.COORDENADAEntry.ID + " IN (1,2,3,4)",
+                        null,
                         null,
                         null,
                         null,

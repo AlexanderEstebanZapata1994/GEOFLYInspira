@@ -1,6 +1,7 @@
 package com.example.alexander.geoflyinspira;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ContentValues;
@@ -13,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 // TODO Revisar guardar la información con hilos y tareas sincronizadas
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -77,6 +79,9 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         // Establecemos los eventos para cada unos de los objetos instanciados previamente
         btnLoad.setOnClickListener(this);
         btnLoadImg.setOnClickListener(this);
+        if (Build.VERSION.SDK_INT >= 23){
+            verifyUserPermissions();
+        }
     }
 
     // ActionBar  methods
@@ -94,8 +99,9 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
      */
     @Override
     public void onClick(View v) {
-        verifyUserPermissions(v);
+          afterGrantPermissions(v);
     }
+
     private void afterGrantPermissions(View v){
         if (v.getId() == btnLoad.getId()){
             if (btnLoad.getText() == getResources().getString(R.string.btn_select_file)){
@@ -253,7 +259,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     fileExt = photosExtensions.get(i).toString();
                     v_bitmap = bitmapList.get(i); //Obtenemos el bitmap de acuerdo a la iteración actual
                     //TODO Verificar porque esta guardando la misma imagen
-                    v_bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+                    v_bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
                     blobBytes = stream.toByteArray(); // Convertimos la imagen en un arreglo de bytes
                     id = idsForUpdating.get(i).toString(); // Guardamos el id el cual vamos a actualizar
 
@@ -276,8 +282,9 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                             selectionArgs);
                 }
                 Toast.makeText(this, "Las imágenes han sido guardadas correctamente.", Toast.LENGTH_SHORT).show();
+            }else{
+                Toast.makeText(this, "No hay información nueva por actualizar.", Toast.LENGTH_SHORT).show();
             }
-            Toast.makeText(this, "No hay información nueva por actualizar.", Toast.LENGTH_SHORT).show();
         }catch (SQLException sql){
             sql.getMessage();
             Toast.makeText(this, "Ha ocurrido un error al guardar la información.", Toast.LENGTH_SHORT).show();
@@ -472,6 +479,12 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         super.onDestroy();
     }
 
+
+    /********************************************************************************************************/
+    /********************************************************************************************************/
+    /********************************** Obteniendo las acciones del menu de opciones ************************/
+    /********************************************************************************************************/
+    /********************************************************************************************************/
     /****************************** Menu de opciones ACTION BAR ***************************************/
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -481,16 +494,11 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                 return true;
 
             case R.id.action_about:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
+                onCreateAboutActivity();
                 return true;
 
             case R.id.action_logout:
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.addCategory(Intent.CATEGORY_HOME);
-                try {
-                    startActivityForResult(intent, SELECTED_IMAGE);
-                } catch (android.content.ActivityNotFoundException ex) {    }
+                onCreateLogoutHOME();
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -498,21 +506,38 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-
     private void onCreateInspiredPhotosActivity(){
         Intent intent = new Intent(this, PhotoListActivity.class);
         startActivity(intent);
     }
 
-    //Android's Runtime Permissions GRANTED BY THE USER
-    private void verifyUserPermissions(View v) {
+    private void onCreateAboutActivity(){
+        Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
+
+    private void onCreateLogoutHOME(){
+        finish();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        try {
+            startActivityForResult(intent, 1);
+        } catch (android.content.ActivityNotFoundException ex) {    }
+    }
+
+    /********************************************************************************************************/
+    /********************************************************************************************************/
+    /************************** Android's Runtime Permissions GRANTED BY THE USER****************************/
+    /********************************************************************************************************/
+    /********************************************************************************************************/
+
+    private void verifyUserPermissions() {
         int canReadStoragePermission = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
         if (canReadStoragePermission != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE_ASK_PERMISSIONS);
             return;
         }
-        afterGrantPermissions(v);
     }
 
     @Override
@@ -521,7 +546,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             case REQUEST_CODE_ASK_PERMISSIONS:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted
-                    showImageChooser();
+                    Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
                 } else {
                     // Permission Denied
                     Toast.makeText(this, "Permiso denegado", Toast.LENGTH_SHORT).show();

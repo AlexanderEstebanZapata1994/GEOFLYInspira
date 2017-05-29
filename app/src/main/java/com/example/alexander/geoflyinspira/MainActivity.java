@@ -35,6 +35,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         onCreateInspiredPhotosActivity();
     }
 
+    /********************************************************************************************************/
+    /********************************************************************************************************/
+    /********************************** Obteniendo las acciones del menu de opciones ************************/
+    /********************************************************************************************************/
+    /********************************************************************************************************/
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -43,16 +48,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
 
             case R.id.action_about:
-                // User chose the "Favorite" action, mark the current item
-                // as a favorite...
+                onCreateAboutActivity();
                 return true;
 
             case R.id.action_logout:
-                Intent intent = new Intent(Intent.ACTION_MAIN);
-                intent.addCategory(Intent.CATEGORY_HOME);
-                try {
-                    startActivityForResult(intent, 1);
-                } catch (android.content.ActivityNotFoundException ex) {    }
+                onCreateLogoutHOME();
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -70,5 +70,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(intent);
     }
 
+    private void onCreateAboutActivity(){
+        Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
 
+    private void onCreateLogoutHOME(){
+        finish();
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        try {
+            startActivityForResult(intent, 1);
+        } catch (android.content.ActivityNotFoundException ex) {    }
+    }
 }

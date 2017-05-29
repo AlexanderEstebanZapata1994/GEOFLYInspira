@@ -22,8 +22,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".LoadCsvActivity"
+        <activity android:name=".LoadCsvActivity"
             android:label="@string/s_titulo_actividad"
             android:parentActivityName=".MainActivity">
 
@@ -32,8 +31,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-        <activity
-            android:name=".AboutActivity"
+        <activity android:name=".AboutActivity"
             android:label="@string/s_titulo_about"
             android:parentActivityName=".MainActivity">
 
@@ -42,10 +40,26 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
         </activity>
-        <activity
-            android:name=".photoList.PhotoListActivity"
+        <activity android:name=".photoList.PhotoListActivity"
             android:label="@string/title_activity_photo_list"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".MainActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
+        <activity android:name=".photoDetails.PhotoDetailsActivity"
+            android:label="@string/title_activity_photo_details"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".photoList.PhotoListActivity">
+
+            <!-- Parent activity meta-data to support 4.0 and lower -->
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".photoList.PhotoListActivity" />
+        </activity>
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -56,11 +70,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
-
-        <activity
-            android:name=".photoDetails.PhotoDetailsActivity"
-            android:label="@string/title_activity_photo_details"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

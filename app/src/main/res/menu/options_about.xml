@@ -1,0 +1,28 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.alexander.geoflyinspira.photoDetails.PhotoDetailsActivity">
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/action_load_info"
+        android:icon="@android:drawable/ic_menu_add"
+        android:orderInCategory="1"
+        android:title="@string/s_load_info"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_inspired_photos"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:orderInCategory="2"
+        android:title="@string/s_btn_inspirePhotos"
+        app:showAsAction="ifRoom" />
+
+    <!-- These options, should always be in the overflow -->
+
+    <item
+        android:id="@+id/action_logout"
+        android:icon="@android:drawable/ic_input_add"
+        android:title="@string/s_logout"
+        android:orderInCategory="3"
+        app:showAsAction="never"/>
+</menu>

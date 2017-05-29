@@ -256,6 +256,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                     stream = new ByteArrayOutputStream();
                     // Obtenemos los valores de la lista
                     fileName = photoNames.get(i).toString();
+                    // Cuando las imagenes son cargadas desde el telefono memoria interna no guarda extensiones por lo que toca colocar una excepción para esta actividad
                     fileExt = photosExtensions.get(i).toString();
                     v_bitmap = bitmapList.get(i); //Obtenemos el bitmap de acuerdo a la iteración actual
                     //TODO Verificar porque esta guardando la misma imagen

@@ -22,5 +22,13 @@
 
     <!-- PhotoListActivity's strings -->
     <string name="title_activity_photo_list">Seleccione una imágen</string>
+    <string name="title_activity_photo_details">Detalles</string>
+    <string name="s_altitude">Altitud</string>
+    <string name="s_latitude">Latitud</string>
+    <string name="s_longitude">Longitud</string>
+    <string name="s_captureDate">Fecha de captura</string>
+    <string name="s_description">Descripción</string>
+    <string name="s_view_on_maps">Ver en mapa</string>
+    <string name="action_settings">Settings</string>
 
 </resources>

@@ -1,5 +1,6 @@
-package com.example.alexander.geoflyinspira;
+package com.example.alexander.geoflyinspira.photoList;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
@@ -9,9 +10,13 @@ import android.support.design.widget.FloatingActionButton;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.example.alexander.geoflyinspira.R;
 import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
+import com.example.alexander.geoflyinspira.data.coordenadaContract;
+import com.example.alexander.geoflyinspira.photoDetails.PhotoDetailsActivity;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -19,10 +24,9 @@ import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
  * create an instance of this fragment.
  */
 public class PhotoListFragment extends Fragment {
-
-    ListView mPhotosList;
-    PhotosCursorAdapter mPhotosAdapter;
-    FloatingActionButton mAddButton;
+    public static final int REQUEST_SHOW_RECORD = 2;
+    public ListView mPhotosList;
+    public PhotosCursorAdapter mPhotosAdapter;
 
     private CoordenadaDbHelper coordenadaDbHelper;
 
@@ -30,11 +34,6 @@ public class PhotoListFragment extends Fragment {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     * @return A new instance of fragment PhotoListFragment.
-     */
     public static PhotoListFragment newInstance() {
         return new PhotoListFragment();
     }
@@ -47,25 +46,47 @@ public class PhotoListFragment extends Fragment {
         // Referencias UI
         mPhotosList = (ListView) root.findViewById(R.id.photo_list);
         mPhotosAdapter = new PhotosCursorAdapter(getActivity(), null);
-        mAddButton = (FloatingActionButton) getActivity().findViewById(R.id.fab);
 
         // Setup
         mPhotosList.setAdapter(mPhotosAdapter);
+
+        mPhotosList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Cursor currentItem = (Cursor) mPhotosAdapter.getItem(i);
+                String currentId = currentItem.getString(
+                        currentItem.getColumnIndex(coordenadaContract.COORDENADAEntry._ID));
+
+                showDetailScreen(currentId);
+            }
+        });
 
         // Instancia de helper
         coordenadaDbHelper = new CoordenadaDbHelper(getActivity());
 
         loadPhotos();
+
         return root;
     }
 
-    private void loadPhotos() {
-        new PhotosLoadTask().execute();
+    private void showDetailScreen(String recordID) {
+        Intent intent = new Intent(getActivity(), PhotoDetailsActivity.class);
+        intent.putExtra( PhotoListActivity.EXTRA_PHOTO_ID, recordID);
+        startActivityForResult(intent, REQUEST_SHOW_RECORD);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
+        if (Activity.RESULT_OK == resultCode) {
+            switch (requestCode) {
+                case REQUEST_SHOW_RECORD:
+                    loadPhotos();
+                    break;
+            }
+        }
+    }
+    private void loadPhotos() {
+        new PhotosLoadTask().execute();
     }
 
     class PhotosLoadTask extends AsyncTask<Void, Void, Cursor> {

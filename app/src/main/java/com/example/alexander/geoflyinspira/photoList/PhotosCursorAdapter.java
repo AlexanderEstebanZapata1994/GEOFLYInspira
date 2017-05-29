@@ -1,4 +1,4 @@
-package com.example.alexander.geoflyinspira;
+package com.example.alexander.geoflyinspira.photoList;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -14,6 +14,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.alexander.geoflyinspira.R;
 import com.example.alexander.geoflyinspira.data.coordenadaContract;
 
 /**

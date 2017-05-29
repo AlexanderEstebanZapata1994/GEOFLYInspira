@@ -29,6 +29,7 @@
                 android:layout_height="wrap_content"
                 android:fitsSystemWindows="true"
                 app:layout_collapseMode="parallax"
+                android:layout_gravity="fill_horizontal"
                 android:background="@drawable/geo_fly_icon"/>
 
             <android.support.v7.widget.Toolbar

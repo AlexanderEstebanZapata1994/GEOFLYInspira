@@ -107,6 +107,7 @@ public class PhotoDetailsFragment extends Fragment {
         byte[] blobImage = coordenadaDetalles.getArchivoImg();
         Bitmap bitmap = BitmapFactory.decodeByteArray(blobImage, 0, blobImage.length);
         imageRecord.setImageBitmap(bitmap);
+        imageRecord.setScaleType(ImageView.ScaleType.CENTER_CROP);
     }
 
     private void showLoadError() {

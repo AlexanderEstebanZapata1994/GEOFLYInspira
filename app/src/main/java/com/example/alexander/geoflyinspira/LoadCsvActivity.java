@@ -210,8 +210,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
 
     private void loadImg(ArrayList<Bitmap> bitmapList, ArrayList<String> photoNames, ArrayList<String> photosExtensions  ){
         List idsForUpdating = new ArrayList();
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-
+        ByteArrayOutputStream stream = null;
         try {
             SQLiteDatabase dbHelper = coordenadaDbHelper.getReadableDatabase();
 
@@ -254,6 +253,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             String id = "";
             if (idsForUpdating.size() > 0){
                 for (int i = 0; i < idsForUpdating.size(); i++ ){
+                    stream = new ByteArrayOutputStream();
                     // Obtenemos los valores de la lista
                     fileName = photoNames.get(i).toString();
                     fileExt = photosExtensions.get(i).toString();
@@ -346,6 +346,10 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                         ClipData.Item item = null;
 
                         if (imageSelectedCount > 1){
+                            bitmapsList = new ArrayList<Bitmap>();
+                            pathList= new ArrayList<String>();
+                            photosNamesList= new ArrayList<String>();
+                            photosExtList= new ArrayList<String>();
                             for (int i = 0; i < imageSelectedCount; i++){
                                 item = clipData.getItemAt(i);
                                 photoUri = item.getUri();

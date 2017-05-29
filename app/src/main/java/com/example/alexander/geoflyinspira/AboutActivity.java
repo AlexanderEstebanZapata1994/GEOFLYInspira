@@ -8,6 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.alexander.geoflyinspira.photoList.PhotoListActivity;
@@ -19,6 +20,9 @@ import com.example.alexander.geoflyinspira.photoList.PhotoListActivity;
 public class AboutActivity extends AppCompatActivity implements OnClickListener {
 
     private TextView urlPagina;
+    private ImageView urlFacebook;
+    private ImageView urlTwitter;
+    private ImageView urlInstagram;
     private String direccion;
 
     @Override
@@ -27,8 +31,14 @@ public class AboutActivity extends AppCompatActivity implements OnClickListener 
         setContentView(R.layout.activity_about);
 
         urlPagina=(TextView)findViewById(R.id.editTextPagina);
+        urlFacebook=(ImageView)findViewById(R.id.ImageViewFacebook);
+        urlTwitter=(ImageView)findViewById(R.id.imageViewTwitter);
+        urlInstagram=(ImageView)findViewById(R.id.imageViewInstagram);
         direccion="";
         urlPagina.setOnClickListener(this);
+        urlFacebook.setOnClickListener(this);
+        urlTwitter.setOnClickListener(this);
+        urlInstagram.setOnClickListener(this);
 
 
     }
@@ -37,6 +47,21 @@ public class AboutActivity extends AppCompatActivity implements OnClickListener 
             case R.id.editTextPagina:
                 direccion="http://geoflyinspira.co/";
                 irAweb(direccion);
+                break;
+            case  R.id.ImageViewFacebook:
+                direccion="https://www.facebook.com/Geoflyinspira/";
+                irAweb(direccion);
+                break;
+            case  R.id.imageViewTwitter:
+                direccion="https://twitter.com/GEOFLYINSPIRA";
+                irAweb(direccion);
+                break;
+            case  R.id.imageViewInstagram:
+                direccion="https://www.instagram.com/geoflyinspira/?hl=es";
+                irAweb(direccion);
+                break;
+            default:
+                break;
         }
     }
 

@@ -13,7 +13,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 // TODO Revisar guardar la información con hilos y tareas sincronizadas
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -36,6 +35,7 @@ import java.util.*;
 import java.util.Date;
 import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
 import com.example.alexander.geoflyinspira.data.coordenadaContract;
+import com.example.alexander.geoflyinspira.photoList.PhotoListActivity;
 
 
 /**

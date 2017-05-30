@@ -70,7 +70,7 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 .query(
                         coordenadaContract.COORDENADAEntry.TABLE_NAME,
                         null,
-                        null,
+                        coordenadaContract.COORDENADAEntry.COL_COOR_ARCHIVO_IMG + " IS NOT NULL ",
                         null,
                         null,
                         null,

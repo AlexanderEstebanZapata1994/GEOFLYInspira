@@ -1,7 +1,6 @@
 package com.example.alexander.geoflyinspira;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ContentValues;
@@ -33,6 +32,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
 import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
@@ -119,11 +120,26 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    private void showFileChooser() {
+        // Creamos un intento para abrir la aplicación
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        // Que permita el abrir el archivo
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/csv");      //csv only files
+        try {
+            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo CSV para cargar"), FILE_SELECTED_CODE);
+        } catch (android.content.ActivityNotFoundException ex) {
+            Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void loadCsv (Uri uri){
         String isHeader = "";
         String isPhoto = "";
         String isVideo = "";
-        Date timestamp = null;
+        long dateToDB = 0;
+        long creationDate = 0;
+        String dateFromFile = "";
         float latitude = 0;
         float longitude = 0;
         float altitude = 0;
@@ -131,7 +147,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         BufferedReader br = null;
 
         // Formateamos la fecha para la fecha de inserción del registro
-        //SimpleDateFormat dateFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss", Locale.ENGLISH);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault());
         // Creamos una instancia de la base de datos de tal forma que podamos escribir sobre ella.
         SQLiteDatabase db = coordenadaDbHelper.getWritableDatabase();
         try {
@@ -146,22 +162,21 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                 ContentValues values = new ContentValues();
                 // Validamos que si la primer fila tiene los encabezado entonces siga con la siguiente fila
                 isHeader = fields[0].toString();
-
                 if (!isHeader.equals("latitude")){
                     latitude = Float.parseFloat(fields[0].toString());
                     longitude = Float.parseFloat(fields[1].toString());
                     altitude = Float.parseFloat(fields[2].toString());
                     isPhoto = fields[15].toString();
                     isVideo = fields[16].toString();
-
+                    dateFromFile = fields[7].toString();
+                    dateToDB = getCastingStrToDate(dateFromFile);
+                    creationDate = getCastingStrToDate(null);
                     if ( (isPhoto.equals("1")) || (isVideo.equals("1")) ) {
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LATITUD, latitude );
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LONGITUD, longitude );
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD, altitude );
-                        // TODO  1 pendiente por guardar fecha del archivo ERROR: Unparsable java.text.ParseException: Unparseable date
-                        timestamp  = getCastingStrToDate(fields[11].toString (), "dd-MM-yyyy");
-                        //values.put(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME, dateFormat.format(timestamp)); // Datetime
-                        //values.put(coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE, dateFormat.format(new Date()));
+                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME, dateToDB); // Integer
+                        values.put(coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE, creationDate ); // Integer
 
                         // Insertamos los datos, si la inserción nos devuelve un -1 quiere decir que hubo un error en la inserción
                         // De lo contrario guardará la información de forma correcta.
@@ -195,14 +210,29 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
-    private void showFileChooser() {
+    /**
+     * @param strDate = Fecha en formato String para que sea convertida
+     * @return convertedDate = Sera la fecha de salida ya formateada.
+     * */
+    protected Long getCastingStrToDate(String strDate) throws ParseException {
+        java.text.DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        Date startDate = null;
+        if(strDate != null){
+            startDate = df.parse(strDate);
+        }else{
+            startDate = new Date();
+        }
+        return startDate.getTime();
+    }
+
+    private void showImageChooser() {
         // Creamos un intento para abrir la aplicación
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        // Que permita el abrir el archivo
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("text/csv");      //csv only files
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         try {
-            startActivityForResult(Intent.createChooser(intent, "Seleccione un archivo CSV para cargar"), FILE_SELECTED_CODE);
+            startActivityForResult(Intent.createChooser(intent, "Seleccione la imágen a Cargar"), SELECTED_IMAGE);
         } catch (android.content.ActivityNotFoundException ex) {
             Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
@@ -252,6 +282,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             byte[] blobBytes = new byte[0];
             String id = "";
             if (idsForUpdating.size() > 0){
+                //TODO  verificar cuando guarde solo una imagen de 12 registros pendientes por guardar
                 for (int i = 0; i < idsForUpdating.size(); i++ ){
                     stream = new ByteArrayOutputStream();
                     // Obtenemos los valores de la lista
@@ -294,19 +325,6 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
             Toast.makeText(this, "Ha ocurrido un error al guardar la información.", Toast.LENGTH_SHORT).show();
         }catch (Exception e){
             e.getMessage();
-        }
-    }
-
-    private void showImageChooser() {
-        // Creamos un intento para abrir la aplicación
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        try {
-            startActivityForResult(Intent.createChooser(intent, "Seleccione la imágen a Cargar"), SELECTED_IMAGE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            Toast.makeText(this, "Por favor, instale un administrador de archivos.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -465,17 +483,6 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * @param date = Fecha en formato String para que sea convertida
-     * @param format = Formato especificado para el cual sera convertida la fecha,
-     *               si no se especifica el formato por defecto sera MM d, yyyy HH:mm:ss
-     * @return convertedDate = Sera la fecha de salida ya formateada.
-     * */
-    protected Date getCastingStrToDate(String date, String format){
-        Date convertedDate = new Date();
-        return convertedDate;
-    }
-
-    /**
     Since getWritableDatabase() and getReadableDatabase() are expensive to call when the database is closed,
     you should leave your database connection open for as long as you possibly need to access it.
     Typically, it is optimal to close the database in the onDestroy() of the calling Activity.
@@ -540,10 +547,15 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     /********************************************************************************************************/
 
     private void verifyUserPermissions() {
-        int canReadStoragePermission = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        int canReadStoragePermission = 0;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            canReadStoragePermission = checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
         if (canReadStoragePermission != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
-                    REQUEST_CODE_ASK_PERMISSIONS);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
+                        REQUEST_CODE_ASK_PERMISSIONS);
+            }
             return;
         }
     }

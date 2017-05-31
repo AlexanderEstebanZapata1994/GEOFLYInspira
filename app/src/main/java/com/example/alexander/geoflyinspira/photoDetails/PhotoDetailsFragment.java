@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -20,7 +19,9 @@ import android.widget.Toast;
 import com.example.alexander.geoflyinspira.R;
 import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
 import com.example.alexander.geoflyinspira.data.CoordenadaDetalles;
-import com.example.alexander.geoflyinspira.data.coordenadaContract;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -101,8 +102,14 @@ public class PhotoDetailsFragment extends Fragment {
         mAltitude.setText(Float.toString(coordenadaDetalles.getAltitud()));
         mLatitude.setText(Float.toString(coordenadaDetalles.getLatitud()));
         mLongitude.setText(Float.toString(coordenadaDetalles.getLongitud()));
-        mCaptureDate.setText(coordenadaDetalles.getFecha());
-        mDescription.setText(coordenadaDetalles.getDescripcion());
+        // TODO quitar cuando vayan a mostrar a Alejandro
+        //mDescription.setText(coordenadaDetalles.getDescripcion());
+        mDescription.setText(R.string.s_scrollbar_text);
+        long dateLong = coordenadaDetalles.getFecha();
+        Date date =new Date(dateLong);
+        SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy");
+        String dateStr = df2.format(date);
+        mCaptureDate.setText(dateStr);
 
         byte[] blobImage = coordenadaDetalles.getArchivoImg();
         Bitmap bitmap = BitmapFactory.decodeByteArray(blobImage, 0, blobImage.length);

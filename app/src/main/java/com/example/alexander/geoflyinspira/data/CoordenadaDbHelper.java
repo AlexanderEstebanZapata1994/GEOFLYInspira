@@ -56,12 +56,12 @@ public class CoordenadaDbHelper extends SQLiteOpenHelper {
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD + " REAL NOT NULL, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_LATITUD + " REAL NOT NULL, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_LONGITUD + " REAL NOT NULL, "
-                +  coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME + " DATETIME , "
+                +  coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME + " INTEGER , "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_ARCHIVO_IMG + " BLOB, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_EXTENSION + " TEXT, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_NOMBRE_ARCHIVO + " TEXT, "
                 +  coordenadaContract.COORDENADAEntry.COL_COOR_DESC + " TEXT, "
-                +  coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE + " DATETIME);";
+                +  coordenadaContract.COORDENADAEntry.COL_COOR_CREATED_DATE + " INTEGER);";
         return sql;
     }
 

@@ -16,10 +16,10 @@ public class CoordenadaDetalles {
     private String extension;
     private String nombreArchivo;
     private String descripcion;
-    private String fecha;
+    private long fecha;
 
     public CoordenadaDetalles(int ID, float altitud, float latitud, float longitud, byte[] archivoImg,
-                              String extension, String nombreArchivo, String descripcion, String fecha) {
+                              String extension, String nombreArchivo, String descripcion, long fecha) {
         this.ID = ID;
         this.altitud = altitud;
         this.latitud = latitud;
@@ -63,7 +63,7 @@ public class CoordenadaDetalles {
         return descripcion;
     }
 
-    public String getFecha() {
+    public long getFecha() {
         return fecha;
     }
 
@@ -76,6 +76,6 @@ public class CoordenadaDetalles {
         extension = cursor.getString(cursor.getColumnIndex(coordenadaContract.COORDENADAEntry.COL_COOR_EXTENSION));
         nombreArchivo = cursor.getString(cursor.getColumnIndex(coordenadaContract.COORDENADAEntry.COL_COOR_NOMBRE_ARCHIVO));
         descripcion = cursor.getString(cursor.getColumnIndex(coordenadaContract.COORDENADAEntry.COL_COOR_DESC));
-        fecha = cursor.getString(cursor.getColumnIndex(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME)) ;
+        fecha = cursor.getLong(cursor.getColumnIndex(coordenadaContract.COORDENADAEntry.COL_COOR_DATETIME)) ;
     }
 }

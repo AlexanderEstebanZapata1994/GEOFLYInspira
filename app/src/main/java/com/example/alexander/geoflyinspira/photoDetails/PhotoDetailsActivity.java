@@ -6,13 +6,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.alexander.geoflyinspira.AboutActivity;
 import com.example.alexander.geoflyinspira.LoadCsvActivity;
+import com.example.alexander.geoflyinspira.maps.MapsActivity;
 import com.example.alexander.geoflyinspira.photoList.PhotoListActivity;
 import com.example.alexander.geoflyinspira.R;
 
 public class PhotoDetailsActivity extends AppCompatActivity {
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

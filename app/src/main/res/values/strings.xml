@@ -30,5 +30,6 @@
     <string name="s_description">Descripción</string>
     <string name="s_view_on_maps">Ver en mapa</string>
     <string name="action_settings">Settings</string>
+    <string name="title_activity_maps">Vista en mapas</string>
 
 </resources>

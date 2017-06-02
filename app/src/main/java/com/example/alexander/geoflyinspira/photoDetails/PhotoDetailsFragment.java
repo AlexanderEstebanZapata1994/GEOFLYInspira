@@ -19,9 +19,12 @@ import android.widget.Toast;
 import com.example.alexander.geoflyinspira.R;
 import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
 import com.example.alexander.geoflyinspira.data.CoordenadaDetalles;
+import com.example.alexander.geoflyinspira.maps.MapsActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static com.example.alexander.geoflyinspira.R.id.tv_latitude;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -39,7 +42,9 @@ public class PhotoDetailsFragment extends Fragment {
     private TextView mLongitude;
     private TextView mCaptureDate;
     private TextView mDescription;
-    private TextView mViewOnMapss;
+    private TextView mViewOnMaps;
+    private double myLongitude;
+    private double myLatitude;
 
     private CoordenadaDbHelper coordenadaDbHelper;
 
@@ -78,10 +83,26 @@ public class PhotoDetailsFragment extends Fragment {
         mCollapsingView = (CollapsingToolbarLayout) getActivity().findViewById(R.id.toolbar_layout);
         imageRecord = (ImageView) getActivity().findViewById(R.id.iv_avatar);
         mAltitude = (TextView) root.findViewById(R.id.tv_altitude);
-        mLatitude = (TextView) root.findViewById(R.id.tv_latitude);
+        mLatitude = (TextView) root.findViewById(tv_latitude);
         mLongitude = (TextView) root.findViewById(R.id.tv_longitude);
         mCaptureDate= (TextView) root.findViewById(R.id.tv_captureDate);
         mDescription = (TextView) root.findViewById(R.id.tv_description);
+
+        mViewOnMaps = (TextView) root.findViewById(R.id.tv_view_on_maps);
+        mViewOnMaps.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            Intent intent = new Intent(getActivity(), MapsActivity.class);
+            try {
+                intent.putExtra( MapsActivity.LATITUDE_EXTRA, myLatitude);
+                intent.putExtra( MapsActivity.LONGITUDE_EXTRA, myLongitude);
+                startActivity(intent);
+            }catch (Exception e){
+                e.getMessage();
+            }
+        }
+        });
 
         coordenadaDbHelper = new CoordenadaDbHelper(getActivity());
         loadRecord();
@@ -102,9 +123,7 @@ public class PhotoDetailsFragment extends Fragment {
         mAltitude.setText(Float.toString(coordenadaDetalles.getAltitud()));
         mLatitude.setText(Float.toString(coordenadaDetalles.getLatitud()));
         mLongitude.setText(Float.toString(coordenadaDetalles.getLongitud()));
-        // TODO quitar cuando vayan a mostrar a Alejandro
-        //mDescription.setText(coordenadaDetalles.getDescripcion());
-        mDescription.setText(R.string.s_scrollbar_text);
+        mDescription.setText(coordenadaDetalles.getDescripcion());
         long dateLong = coordenadaDetalles.getFecha();
         Date date =new Date(dateLong);
         SimpleDateFormat df2 = new SimpleDateFormat("dd/MM/yy");
@@ -115,6 +134,9 @@ public class PhotoDetailsFragment extends Fragment {
         Bitmap bitmap = BitmapFactory.decodeByteArray(blobImage, 0, blobImage.length);
         imageRecord.setImageBitmap(bitmap);
         imageRecord.setScaleType(ImageView.ScaleType.CENTER_CROP);
+
+        myLatitude = Double.parseDouble(Float.toString(coordenadaDetalles.getLatitud()));
+        myLongitude = Double.parseDouble(Float.toString(coordenadaDetalles.getLongitud()));
     }
 
     private void showLoadError() {

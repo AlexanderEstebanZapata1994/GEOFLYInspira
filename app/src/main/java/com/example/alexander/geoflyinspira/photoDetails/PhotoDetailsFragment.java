@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
@@ -21,6 +22,7 @@ import com.example.alexander.geoflyinspira.data.CoordenadaDbHelper;
 import com.example.alexander.geoflyinspira.data.CoordenadaDetalles;
 import com.example.alexander.geoflyinspira.maps.MapsActivity;
 
+import java.io.ByteArrayOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -92,11 +94,17 @@ public class PhotoDetailsFragment extends Fragment {
         mViewOnMaps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                byte[] blobBytes = null;
             Intent intent = new Intent(getActivity(), MapsActivity.class);
             try {
+                Bitmap bitmap  = ((BitmapDrawable) imageRecord.getDrawable()).getBitmap();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
+                blobBytes = stream.toByteArray();
+                intent.putExtra(MapsActivity.BYTE_BITMAP_IMAGE, blobBytes);
                 intent.putExtra( MapsActivity.LATITUDE_EXTRA, myLatitude);
                 intent.putExtra( MapsActivity.LONGITUDE_EXTRA, myLongitude);
+                // Iniciamos la actividad
                 startActivity(intent);
             }catch (Exception e){
                 e.getMessage();

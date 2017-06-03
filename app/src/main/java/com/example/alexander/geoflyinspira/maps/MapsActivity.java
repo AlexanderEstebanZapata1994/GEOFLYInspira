@@ -2,6 +2,9 @@ package com.example.alexander.geoflyinspira.maps;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import com.example.alexander.geoflyinspira.R;
@@ -20,10 +23,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public final static String LATITUDE_EXTRA = "LATITUDE_EXTRA";
     public final static String LONGITUDE_EXTRA = "LONGITUDE_EXTRA";
+    public final static String BYTE_BITMAP_IMAGE = "BITMAP_IMAGE";
 
     private GoogleMap mMap;
     double lati = 0;
     double longitude = 0;
+    byte[] bitmap_array = null;
+    Bitmap bitmap = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +38,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         lati =  getIntent().getDoubleExtra(LATITUDE_EXTRA, 0);
         longitude = getIntent().getDoubleExtra(LONGITUDE_EXTRA, 0);
+        bitmap_array = getIntent().getByteArrayExtra(BYTE_BITMAP_IMAGE);
+        bitmap = BitmapFactory.decodeByteArray(bitmap_array, 0, bitmap_array.length);
+
+        //Redimensionamos la imagen para que no se vea tan grande en el mapa
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+        float scaleWidth = ((float) 300) / width;
+        float scaleHeight = ((float) 200) / height;
+        // create a matrix for the manipulation
+        Matrix matrix = new Matrix();
+        // resize the bit map
+        matrix.postScale(scaleWidth, scaleHeight);
+        bitmap = bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, false);
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
         if (status == ConnectionResult.SUCCESS) {
             // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -54,16 +74,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        float zoomLevel = 18;
 
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         UiSettings uiSettings = mMap.getUiSettings();
         uiSettings.setZoomControlsEnabled(true);
+        uiSettings.setMyLocationButtonEnabled(true);
+        uiSettings.setMapToolbarEnabled(true);
 
         //LatLng recordLocation = new LatLng(-63.049092, -60.958994); // Posición exacta del Kraken en google Maps
         LatLng recordLocation = new LatLng(lati, longitude);
         String mititulo = "Ubicación de la foto: latitud " + String.valueOf(lati) + " + y su longitud " + String.valueOf(longitude);
-        mMap.addMarker(new MarkerOptions().position(recordLocation).title(mititulo).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)));
-        float zoomLevel = 18;
+        mMap.addMarker(new MarkerOptions()
+                .position(recordLocation)
+                .title(mititulo)
+                .snippet("Descripción: " +
+                        "Aquí va la descripción")
+                .icon(BitmapDescriptorFactory.fromBitmap(bitmap)));
+
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(recordLocation, zoomLevel));
     }
 }

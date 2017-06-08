@@ -60,10 +60,10 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     private Uri uri;
     private Uri photoUri;
     // Listas de objetos para ser guardados luego
-    private ArrayList<Bitmap> bitmapsList = new ArrayList<Bitmap>();
-    private ArrayList<String> pathList= new ArrayList<String>();
-    private ArrayList<String> photosNamesList= new ArrayList<String>();
-    private ArrayList<String> photosExtList= new ArrayList<String>();
+    private ArrayList<Bitmap> bitmapsList = new ArrayList<>();
+    private ArrayList<String> pathList= new ArrayList<>();
+    private ArrayList<String> photosNamesList= new ArrayList<>();
+    private ArrayList<String> photosExtList= new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,7 +215,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
      * @return convertedDate = Sera la fecha de salida ya formateada.
      * */
     protected Long getCastingStrToDate(String strDate) throws ParseException {
-        java.text.DateFormat df = new SimpleDateFormat("MM/dd/yyyy");
+        java.text.DateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
         Date startDate = null;
         if(strDate != null){
             startDate = df.parse(strDate);

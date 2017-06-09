@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -163,15 +164,15 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                 // Validamos que si la primer fila tiene los encabezado entonces siga con la siguiente fila
                 isHeader = fields[0].toString();
                 if (!isHeader.equals("latitude")){
-                    latitude = Float.parseFloat(fields[0].toString());
-                    longitude = Float.parseFloat(fields[1].toString());
-                    altitude = Float.parseFloat(fields[2].toString());
-                    isPhoto = fields[15].toString();
-                    isVideo = fields[16].toString();
-                    dateFromFile = fields[7].toString();
-                    dateToDB = getCastingStrToDate(dateFromFile);
-                    creationDate = getCastingStrToDate(null);
+                    isPhoto = fields[15];
+                    isVideo = fields[16];
                     if ( (isPhoto.equals("1")) || (isVideo.equals("1")) ) {
+                        latitude = Float.parseFloat(fields[0]);
+                        longitude = Float.parseFloat(fields[1]);
+                        altitude = Float.parseFloat(fields[2]);
+                        dateFromFile = fields[7];
+                        dateToDB = getCastingStrToDate(dateFromFile);
+                        creationDate = getCastingStrToDate(null);
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LATITUD, latitude );
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_LONGITUD, longitude );
                         values.put(coordenadaContract.COORDENADAEntry.COL_COOR_ALTITUD, altitude );
@@ -195,7 +196,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
         catch (Exception e){
             System.out.print(e.getMessage());
-            Toast.makeText(this, "Hubo un error al conectar con la base de datos.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Hubo un error al cargar la información.", Toast.LENGTH_SHORT).show();
         }finally {
             try {
                 if (null != br){
@@ -215,14 +216,23 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
      * @return convertedDate = Sera la fecha de salida ya formateada.
      * */
     protected Long getCastingStrToDate(String strDate) throws ParseException {
-        java.text.DateFormat df = new SimpleDateFormat("MM/dd/yyyy", Locale.getDefault());
-        Date startDate = null;
-        if(strDate != null){
-            startDate = df.parse(strDate);
-        }else{
-            startDate = new Date();
+        // 3/5/2017 17:25        Formato del primer archivo enviado para probar
+        // 2017-04-06 15:10:36    Este es el formato del otro archivo enviado recientemente archivo CSV cuando se carga de los ultimos
+        String inputPattern = "yyyy-MM-dd HH:mm:ss";
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat(inputPattern);
+            Date startDate = null;
+            if(strDate != null){
+                startDate = inputFormat.parse(strDate);
+                return startDate.getTime();
+            }else{
+                startDate = new Date();
+                return startDate.getTime();
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        return startDate.getTime();
+        return null;
     }
 
     private void showImageChooser() {

@@ -196,7 +196,7 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
         }
         catch (Exception e){
             System.out.print(e.getMessage());
-            Toast.makeText(this, "Hubo un error al cargar la información.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Hubo un error al guardar la fechas en el archivo cargado.", Toast.LENGTH_SHORT).show();
         }finally {
             try {
                 if (null != br){
@@ -218,9 +218,27 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
     protected Long getCastingStrToDate(String strDate) throws ParseException {
         // 3/5/2017 17:25        Formato del primer archivo enviado para probar
         // 2017-04-06 15:10:36    Este es el formato del otro archivo enviado recientemente archivo CSV cuando se carga de los ultimos
-        String inputPattern = "yyyy-MM-dd HH:mm:ss";
+        String inputPattern = "";
+
+        //Recorremos la ruta buscando los separadores para aunmentar la cantidad de segmentos
+        if (strDate != null)
+        {
+            int lengthStrDate = strDate.length(); //Obtenemos la cantidad de letras de la fecha
+            char separatorSlash = '/';
+            char separator = '-';
+            for (int j = 0; j < lengthStrDate; j++){
+                char currentCharacter = strDate.charAt(j);//
+                if (currentCharacter == separatorSlash){
+                    inputPattern = "dd/MM/yyyy HH:mm";
+                    break;
+                }else if (currentCharacter == separator){
+                    inputPattern = "yyyy-MM-dd HH:mm:ss";
+                    break;
+                }
+            }
+        }
         try {
-            SimpleDateFormat inputFormat = new SimpleDateFormat(inputPattern);
+            SimpleDateFormat inputFormat = new SimpleDateFormat(inputPattern, Locale.US);
             Date startDate = null;
             if(strDate != null){
                 startDate = inputFormat.parse(strDate);
@@ -296,10 +314,10 @@ public class LoadCsvActivity extends AppCompatActivity implements View.OnClickLi
                 for (int i = 0; i < idsForUpdating.size(); i++ ){
                     stream = new ByteArrayOutputStream();
                     // Obtenemos los valores de la lista
-                    fileName = photoNames.get(i).toString();
+                    fileName = photoNames.get(i);
                     // Cuando las imagenes son cargadas desde el telefono memoria interna no guarda extensiones por lo que toca colocar una excepción para esta actividad
                     if (photosExtensions.size() > 1) {
-                        fileExt = photosExtensions.get(i).toString();
+                        fileExt = photosExtensions.get(i);
                     }else {
                         fileExt = "";
                     }
